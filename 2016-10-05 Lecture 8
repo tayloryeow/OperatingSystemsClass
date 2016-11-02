@@ -1,0 +1,134 @@
+Reader Writers Problem:
+	No reader should be able to read data that is being modified by Writer
+	Lets add Synchronization:
+	-add semaphore to write and read. Aquire the lock at the beggining of the reader and the beginning of the writer. This is inefficient.	
+	-Add readcount and that allows us to only let one readcount read at a time.  Only one reader can read at a time and readcount is shared but not synchronized
+	-Adding sempahores around readcount and before and after read() synchs read and allows arbitrary many reads operate all at once. Since the read_write semaphore is locked then we know nothing is being written right now
+
+
+	Track the number of readers
+	-Have a semaphore that will only allow one class of operation through. Writing only, or reading only. This stops us from being able to read concurrently.
+
+	In reader track the number of readers with readcount. If there's only one reader we aquire lock and read. 
+	Problem: readcounter is shared but isn't synchronized. Add mutex locks around where readcount operations
+
+	if its the last reader we signal the semaphore to begin writing again.
+	P() operation is wait operation and V() signal
+
+LOCKS & CONDITION VARIABLES:
+	Terms: Condition Variables, 
+	
+
+MONITORS:
+	-Monitors are a way of systemitising this locking mechanism.
+	-Abstracct data type that contains all the information for this data pattern.
+	-Only one process can go through the monitor at a time.
+	-All of the data in the thread/process is accessed through a monitor API.
+	-Process can only enter by using.
+	-Every P/T is stopped until the monitor is empty, then it takes another.
+
+ENFORCING SINGLE ACCESS:
+If a thread has to block because some condition has been met, then you have to block yourself on a condition variable
+we need as amointor a set of condition variables on which on a process a thread may block
+also if a process is in a thread an blocks itself then it will be pupt on the wait queue and another thread will be run.
+Its not only one thread can be in the moinitor it is only that one thread can be active
+
+Monitor could signal the waiting thread so that it can awake from block
+
+MONITOR DIAGRAM:
+	-threads enter the queue
+	-its local data is loaded in
+	-it checks condition variables
+	-procedure is called
+
+MORE ON MOINTORS:
+	-if procedure one is not read and waits, it'll enqueue itself until its read to go into the Condition X queue
+	-Process P (P2) goes read is true and then it signals x when it is ready to go. 
+	Question: We can only have 1 thread active in the monitor. Which calls
+		-Either or run now
+		-2 possibilities
+		-Hoare monitors (Original)
+			-Calls the original waiting thread to run
+			-The thread that woke up og thread is placed into a new queue and waits until monitor is empty
+			if (empty) 
+				wait(condition)
+		-Mesa Monitors()
+			-Exact opposite of Hoare
+			-The signaling process finishes execution
+			-The problem here is that the calling process condition may not be true. We need to recheck in the second thread. The end of the signalling thread may have altered the validity of the condition variable in OG.
+		Tradeoffs:
+			Hoare: is easier to program
+			Mesa: More flexible and can support broadcasts
+			Question: Why can't hoare broadcast? (broadcast: sends signals to all the threads)
+				Because hoare throws back to the original thread that may havve changed the condition of broadcast. You can't broadcast in Hoare
+
+USING MONITORS IN C:
+TERMS: Bounded Buffer
+	Producers add to buffer if it is not full
+	Consumers remove from the buffer is it is not empty
+	-Add functions to add and remove buffer 
+	-Lock so that only one thread can access mointor
+	-Add two condition variables so you can switch between producing and consuming stages
+	
+	Lock is added to the structure so only one thread can access the structure
+
+	BARE BONES:
+		Add_to_buff()
+			-Add data to current position
+			-Add 
+		Synchronization:
+			-Aquire lock at the begginning and free it and the end
+		Prod/Cons switch:
+			-Check at the start if the buffer is full (nelements == N)
+		Remove_from_buff()
+			-read in value
+			-Reflect outpos (tracks output indicator)
+			-decrement nelements
+		Sycnrhonization:
+			-Aquire Lock at the beginning/release at the end
+		Prod/Cons switch:
+			-Check at the start if the buffer is empty (nelements == 0)
+			-signal empty
+POSSIBLE EXECUTIONS (MESA):
+	producer enters queue, adds element, signals that its not empty allowing the consumer to consume.
+	consumer enters queue, removes an element, signals that its not full so it switches back to Producer.
+
+NOTES ON MONITORS:
+	1. Aquire monitor lock
+	2. last step release lock on mointors
+	3. call cv_wait inside while loops when using MESA, IF statements if Hoare
+	4. Signal 
+
+DEADLOCK AND STARVATION:
+	TERMS: DEADLOCK AND STARVATION
+	DEADLOCK: When every process in set is waiting for EVENT that can only be caused by another process in the set
+	STARVATION: 
+
+	Imagine the scheduler prefferentially executes new arrivals. An old thread is waiting for an also old thread to 
+	
+ASSIGNMENT 2:
+	-implement a monitor that simulates a traffic monitoring system.
+	-Each lane is a buffer/queue. 
+	-The intersection is represented using 4 quadrants. A car will need to access 2 quadrants to move accross smoothly 
+	-Deadlock: if you make it so that each quadrant can be held by the car at the intersection infront of it then a deadlock can happen easily. The only way to avoid is by ordering the locks. Get the far lock first, then the close lock.
+	-You can allow more than 1 car to go through the monitor. I believe that's on implementing each car 
+
+
+
+RESOURCES:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

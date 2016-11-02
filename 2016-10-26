@@ -1,0 +1,148 @@
+Last Lecture:
+    Hardware support for dynamic relocation
+    Paged Addr Trans: SImple lin page table that serves as a lookup
+        each vis page can be loaded into the page frame tables.
+        Look up page table number that looks up the physical hw page address
+    Page Limitations
+        Mem req for lin pages can be high
+        How do we solve this?
+        3 Options
+HOw can we reduce space overhead
+    Only map the pieces actually used.
+    Addr space composed of multiple sections
+    space btwn stack and heap not even mapped
+    How map only used sec
+        use 3 page tables - one per logical section
+        1 code 
+        1 stack
+        1 heap
+        We break it into smaller sections, save space only map regions in actual use
+        Need: 3 pairs of BASE/BOUND REGISTERS
+        Large Mem save: not much stack addr space actually usede
+        Is this ideal?      
+            -Might be expensive in term of mem required. Base bound registers could occupy a lot of space. But we only need a few so its not so bad. Only really need 3
+            -Might need to go to serveral page tables and have to load a lot of things in: Lets assume MMU does this quickly    1
+            -As mem gets frees mem could get fragmented. No way to save whats between heap and the stack so theres a lot of unallocated memory
+                Could end up with serveral page table for everything and that's a lot of registers
+            -Variably sized page tables (I thought they were static) (not in this implementation apparently)
+       
+External Fragmentation
+    -Page tables can be arbitrary size so finding space to store can get hard
+    -Hybrid approach doesn't work well
+
+How to solve Managing page tables better?
+    Multi-lever page tables
+        -Split page tables into pages of PTE
+        -Use a page table directory to point to different pages of PTE
+        We treat page tables almost as trees. Ie multi level page tables
+
+Intuition:
+    Linear:
+        -Its like a folder. Gotta keep track of mapped and unmapped pages
+    Multilevel:
+        More like shelving. Shelf to folder to page
+        if folder is empty or pages are empty don't even map it in the first place.
+        A page is one page table entry. A folder is a page worth of page table entries.
+        Each shelf is several folders of page table entries. 
+
+Table of pages:
+    Valid | prot | PFM
+
+    valid: 1/0 if page is alloc
+    prot: Permissions (chmod)
+    PFN: page file number
+
+Multi-level Page Table:
+    valid | PFN
+    
+    each PFN hits another table. Nested
+
+Two level Page tables - Translation
+    Tables have to store more data now.
+    page dir # -> secondary PT -> Offset
+    
+    3 things per to trns from vir mem to phys mem
+
+2 - Level Paging Example (assignment notes)
+    32 bit addr space
+    4k pages, 4 bytes/PTE
+    Offset: 4k = 12 bits, eaves 20 bits
+    
+
+    Master Sec page tbl in 1 page frame each:
+        4k/4bytes = 1k entries
+         //missing//
+
+Tradeoff: Space vs Time
+    Cost associciated
+        More time
+        More complexity of imp
+        
+    Linux uses 3 lvl pg table
+    
+64 bit Addr space:
+    9 bits (x4) for each pg table level
+    12 bit ]for offset
+
+    Sigma above = 48.
+        Because we don't need more than 268 terrabytes. Not yet atleast
+        can be used later.
+    
+    Why not just allow more memory?
+        Adding more bits also slows down lookup time. 
+
+Fast VM lookup:
+    Use hash tables
+        -Hash page number -> bucket of list of (VPN/PTE/next) -> Memory
+
+Inverted Page Tables:
+    Record which vr page # stored in that frame
+    Lookup on physical page number
+    Lookup will take forever. 
+
+    Use less space, lookups 
+        Use hashing to reduce the search time. 
+
+Limitations of Pagins:
+    Memory reference Overhead (time)
+        2 mem reads per address lookup
+    Solution: Hash hadrware lookups
+    !Translation Lookaside Buffer (TLB) -> Page Table Cache basically. 
+        Stores most recent translation. (in MMU)    
+
+Locality:
+    Processes only use a few pages. (TLB only allows 16 - 64 entries)
+    Hits? means the meory is actually in the TLB and you don't need to look up at mem through the translation pages. 
+
+    Who places translations into the TLB?
+        HW-loaded: 
+            -MMU knows location of page table memory. 
+            -Fast, but rigid SW must confort to HW translation
+        SW-loaded
+            -tables can be remade on fly for opt perf
+            -slower but more convinient
+    OS enforrced TLB and PGtbl consistency
+        Changing bits of PTE needs to be mirrored in TLB
+           
+Process Context Switch
+    Invalidate all entries ("flush the TLB")
+    Translations of prev proc is meaning less for new process.
+    We don't want to do this
+        Tag each TLB with the PID and then load reload on PID
+    
+    CACHED PTE 
+        when TLB miss new PTE needs be loaded
+        Evict old TLB and get it in.
+        Evicted pages go to swap file
+
+Page Faults:
+    Is when you access an entry a page that is not entered into memory.
+    you ahve a handler that brings that mem into page. Brings it into the physical page 
+
+
+
+        
+How find levels from bits:
+    Num bits = offset + (num levels)*(bits per level)
+
+Lookup: PTE

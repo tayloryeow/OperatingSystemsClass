@@ -1,0 +1,97 @@
+File Systems!
+    provide long term storage
+    gives: persistence, concurrent access, make sense of large amt of data
+
+    OS perspective: convient organization, abstraction layer for user that enforces protections
+
+    FILE (Management) Systems
+        There needs to be a logical system
+        Permit sharing of data between processes, people and machines
+        Secturity 
+        (just reiterating above)
+        
+        System Calls and FMS
+            -open and close sets permissions and access writes to a member of the FD table
+            -write, read all that is access
+            
+        CONCURRENCY & PROTECTION:
+            -2 LEVELS of iternal tables {FD table, permissions table}
+            
+        Accessing Files: sequential and Direct Acess 
+            seq: one byte at a time
+            dir: rand access given block/byte number
+
+            DB systems are more complex
+                record access: tables like in sql
+                Indexed access: maps
+
+            How directories work (From the Os perspective, more indepth than 209)
+                -for user: logical system for accessing files
+                File System: convient naming interface. (abstraction layer between vir and phys)
+            
+            Directory Structure
+                a directory is just meta data about the folder (vim a directory)
+                Files are unordered in general. 
+                This struct allows OS to only need to worry about organizing files. No distinctions.
+
+            Possible Orgs:  
+                Tree Structured
+                Acyclic Graphs
+
+            Dir Implementation: 
+                Linear List: easy to imp, hard to search. List of file names and pnter to data 
+                Hash Table: So fast! 
+
+            Sharing: Done with File Links: Pointers to list 
+                Hard Links: when all HL's are removed all data for that thing is removed from sys
+                SymLinks: symlinks can point to null. Don't keep data around.
+
+            Issues With Acyclics Graphs:
+                -muliple abs path names. 
+                -Hard to get search not to go back on itself
+                -HL's allow the OS to op faster
+
+            FS Implementation:
+                FS specs BLOCKSIZE
+                MASTER BLOCK: Loc of root dir (parititon control block, super block)
+                    Have multiple copies in case of pot FUBAR
+                FREE MAP: loc of free blocks 
+                    imp w bitmap
+                    cached for performance
+                REMAINING BLOCKS: store files in mem. kinda just the remainder many ways to imp
+            
+            Disk Layout strategy:
+                Contiguous
+                    -Data in sequential blocks
+                    -spaces between data might be unusable.
+                Linked, chained Struct
+                    -Node like, each carries pointer to next
+                    -good for seq access, SUUUUUCKS for arb/rand access
+                    -Lets you use more space though. Good for stuff
+                Index
+                    -This is what Unix uses
+                    -map like. Table of contents for everything.   
+                    -INODE:  
+                        diff than directories. Inode spec where data is on disc, dir as mappings to where files are. 
+                        Its exactly like memory, in UNIX theres 3 layers of pot access though.
+                    -Good for rand access. Good for Seq Access. 
+                    -Could be N leveled like Mem
+
+            PATH NAME TRANSLATION:
+                What does the file system do
+                    each directory is hashed and cashed and thats how we access everything. 
+                    
+           relative path & current workung dir: Ez shit.
+
+        <Note>: Much of the information is not in contigous memory
+              Access is mediated by system calls {read, write, open}
+              
+
+
+QUESTIONS:  
+-whats in /proc?
+-What benefits do you get from each in Possible Orgs
+    See issues with AG
+-Do symlinks operate the same in all contexts
+
+
